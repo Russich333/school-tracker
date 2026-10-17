@@ -8,7 +8,7 @@
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-  <!-- Chart.js для монохромных диаграмм -->
+  <!-- Chart.js для диаграмм -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
@@ -127,12 +127,13 @@
       color: #fff;
     }
 
+    /* Логика отображения вкладок: strict display */
     .tab-content {
-      display: none;
+      display: none !important;
     }
 
     .tab-content.active {
-      display: block;
+      display: block !important;
     }
 
     .card {
@@ -409,21 +410,17 @@
       letter-spacing: -0.01em;
     }
 
-    /* Скрытие элементов редактора для гостей */
-    .admin-only {
+    /* Элементы, доступные только в режиме редактирования */
+    .edit-only {
       display: none !important;
     }
 
-    body.is-admin .admin-only {
+    body.is-editor .edit-only {
       display: initial !important;
     }
 
-    body.is-admin nav .admin-only {
+    body.is-editor nav button.edit-only {
       display: block !important;
-    }
-
-    body.is-admin div.admin-only {
-      display: flex !important;
     }
   </style>
 </head>
@@ -436,22 +433,22 @@
     </div>
     <div class="header-controls">
       <div id="cloud-status" class="cloud-status">Облако: Подключение...</div>
-      <div id="role-badge" class="role-badge">Гость (просмотр)</div>
-      <button class="btn btn-outline btn-sm" id="btn-auth-toggle" onclick="handleAuthClick()">Войти как староста</button>
+      <div id="role-badge" class="role-badge">Только чтение</div>
+      <button class="btn btn-outline btn-sm" id="btn-auth-toggle" onclick="handleAuthClick()">Режим редактирования</button>
     </div>
   </header>
 
   <main>
     <nav>
-      <button class="tab-btn admin-only" id="tab-btn-current" onclick="switchTab('current-lesson')">Текущий урок</button>
+      <button class="tab-btn edit-only" id="tab-btn-current" onclick="switchTab('current-lesson')">Текущий урок</button>
       <button class="tab-btn active" id="tab-btn-analytics" onclick="switchTab('analytics')">Статистика</button>
       <button class="tab-btn" id="tab-btn-schedule" onclick="switchTab('schedule-view')">Расписание</button>
       <button class="tab-btn" id="tab-btn-history" onclick="switchTab('history')">История уроков</button>
-      <button class="tab-btn admin-only" id="tab-btn-settings" onclick="switchTab('settings')">Настройки и список</button>
+      <button class="tab-btn edit-only" id="tab-btn-settings" onclick="switchTab('settings')">Настройки и список</button>
     </nav>
 
-    <!-- ВКЛАДКА 1: ТЕКУЩИЙ УРОК (Только для старосты) -->
-    <section id="current-lesson" class="tab-content admin-only">
+    <!-- ВКЛАДКА 1: ТЕКУЩИЙ УРОК -->
+    <section id="current-lesson" class="tab-content edit-only">
       <div class="card">
         <div class="card-title">Параметры урока</div>
         <div class="form-grid">
@@ -587,10 +584,10 @@
       </div>
     </section>
 
-    <!-- ВКЛАДКА 5: НАСТРОЙКИ (Только для старосты) -->
-    <section id="settings" class="tab-content admin-only">
+    <!-- ВКЛАДКА 5: НАСТРОЙКИ -->
+    <section id="settings" class="tab-content edit-only">
       <div class="card">
-        <div class="card-title">Безопасность (PIN-код старосты)</div>
+        <div class="card-title">Безопасность (PIN-код для редактирования)</div>
         <div style="display: flex; gap: 8px; max-width: 320px;">
           <input type="password" id="new-pin-code" placeholder="Новый PIN-код">
           <button class="btn btn-outline btn-sm" onclick="changePinCode()">Сменить PIN</button>
@@ -638,27 +635,27 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // --- 2. Авторизация по PIN-коду ---
-    let isAdmin = localStorage.getItem('school_tracker_is_admin') === 'true';
+    // --- 2. Режим редактирования ---
+    let isEditor = localStorage.getItem('school_tracker_is_editor') === 'true';
 
     function updateAuthUI() {
       const badge = document.getElementById('role-badge');
       const btn = document.getElementById('btn-auth-toggle');
 
-      if (isAdmin) {
-        document.body.classList.add('is-admin');
-        badge.textContent = 'Староста (полный доступ)';
+      if (isEditor) {
+        document.body.classList.add('is-editor');
+        badge.textContent = 'Режим: Редактирование';
         badge.style.borderColor = '#111827';
-        btn.textContent = 'Выйти';
+        btn.textContent = 'Выйти из редактирования';
       } else {
-        document.body.classList.remove('is-admin');
-        badge.textContent = 'Гость (просмотр)';
+        document.body.classList.remove('is-editor');
+        badge.textContent = 'Режим: Только чтение';
         badge.style.borderColor = 'var(--border-dark)';
-        btn.textContent = 'Войти как староста';
+        btn.textContent = 'Режим редактирования';
 
-        // Если гость был на закрытой вкладке, перекидываем в статистику
+        // Если пользователь был на вкладке редактирования, переключаем на статистику
         const activeTab = document.querySelector('.tab-content.active');
-        if (activeTab && activeTab.classList.contains('admin-only')) {
+        if (activeTab && activeTab.classList.contains('edit-only')) {
           switchTab('analytics');
         }
       }
@@ -667,14 +664,14 @@
     }
 
     async function handleAuthClick() {
-      if (isAdmin) {
-        if (confirm('Выйти из режима старосты?')) {
-          isAdmin = false;
-          localStorage.removeItem('school_tracker_is_admin');
+      if (isEditor) {
+        if (confirm('Выйти из режима редактирования?')) {
+          isEditor = false;
+          localStorage.removeItem('school_tracker_is_editor');
           updateAuthUI();
         }
       } else {
-        const enteredPin = prompt('Введите PIN-код старосты:');
+        const enteredPin = prompt('Введите PIN-код для перехода в режим редактирования:');
         if (!enteredPin) return;
 
         try {
@@ -683,20 +680,19 @@
           if (doc.exists && doc.data().pin) {
             serverPin = doc.data().pin;
           } else {
-            // Инициализация стандартного PIN, если еще нет в базе
             await db.collection('settings').doc('auth').set({ pin: '9999' });
           }
 
           if (enteredPin.trim() === serverPin.trim()) {
-            isAdmin = true;
-            localStorage.setItem('school_tracker_is_admin', 'true');
+            isEditor = true;
+            localStorage.setItem('school_tracker_is_editor', 'true');
             updateAuthUI();
-            alert('Успешный вход!');
+            alert('Режим редактирования активирован!');
           } else {
             alert('Неверный PIN-код!');
           }
         } catch (err) {
-          alert('Ошибка связи с базой: ' + err.message);
+          alert('Ошибка соединения с базой: ' + err.message);
         }
       }
     }
@@ -891,8 +887,8 @@
     }
 
     function switchTab(tabId) {
-      if (!isAdmin && (tabId === 'current-lesson' || tabId === 'settings')) {
-        alert('Доступ запрещен. Войдите как староста.');
+      if (!isEditor && (tabId === 'current-lesson' || tabId === 'settings')) {
+        alert('Перейдите в режим редактирования для доступа к этому разделу.');
         return;
       }
 
@@ -933,8 +929,8 @@
     }
 
     function selectLessonFromSchedule(dayIdx, lessonNum, subject) {
-      if (!isAdmin) {
-        alert('Для отметки уроков необходимо войти как староста.');
+      if (!isEditor) {
+        alert('Для отметки уроков перейдите в режим редактирования.');
         return;
       }
 
@@ -964,7 +960,7 @@
           lessonsHtml = '<div style="color: var(--text-muted); font-size: 13px; padding: 10px 0;">Уроков нет</div>';
         } else {
           d.lessons.forEach(l => {
-            const btnHtml = isAdmin 
+            const btnHtml = isEditor 
               ? `<button class="btn btn-outline btn-sm" onclick="selectLessonFromSchedule(${day}, ${l.num}, '${l.subject}')">Отметить</button>`
               : '';
 
@@ -1029,7 +1025,7 @@
     }
 
     function changeOffenseCount(name, delta) {
-      if (!isAdmin) return;
+      if (!isEditor) return;
       let current = currentLessonOffenses[name] || 0;
       current += delta;
       if (current <= 0) {
@@ -1041,7 +1037,7 @@
     }
 
     function resetCurrentLessonCounters() {
-      if (!isAdmin) return;
+      if (!isEditor) return;
       if (confirm('Сбросить текущие отметки для этого урока?')) {
         currentLessonOffenses = {};
         renderLiveStudents();
@@ -1049,7 +1045,7 @@
     }
 
     async function saveCurrentLesson() {
-      if (!isAdmin) return;
+      if (!isEditor) return;
       const date = document.getElementById('lesson-date').value;
       const number = document.getElementById('lesson-number').value;
       const subject = document.getElementById('lesson-subject').value.trim() || 'Без предмета';
@@ -1295,7 +1291,7 @@
           .map(([name, count]) => `${name} (${count})`)
           .join(', ') || '—';
 
-        const deleteCol = isAdmin 
+        const deleteCol = isEditor 
           ? `<button class="danger-link" onclick="deleteHistoryItem('${l.docId}')">Удалить</button>` 
           : '';
 
@@ -1312,7 +1308,7 @@
     }
 
     async function deleteHistoryItem(docId) {
-      if (!isAdmin || !docId) return;
+      if (!isEditor || !docId) return;
       if (confirm('Удалить эту запись об уроке из базы данных?')) {
         try {
           await db.collection('lessons').doc(docId).delete();
@@ -1337,7 +1333,7 @@
     }
 
     async function updateStudentsInDb(newList) {
-      if (!isAdmin) return;
+      if (!isEditor) return;
       try {
         await db.collection('settings').doc('students').set({ list: newList });
       } catch (err) {
@@ -1346,7 +1342,7 @@
     }
 
     function addSingleStudent() {
-      if (!isAdmin) return;
+      if (!isEditor) return;
       const input = document.getElementById('new-student-name');
       const name = input.value.trim();
       if (!name) return;
@@ -1360,7 +1356,7 @@
     }
 
     function addBulkStudents() {
-      if (!isAdmin) return;
+      if (!isEditor) return;
       const textarea = document.getElementById('bulk-students');
       const lines = textarea.value.split('\n').map(l => l.replace(/^\d+[\.\)]\s*/, '').trim()).filter(l => l.length > 0);
       if (lines.length === 0) return;
@@ -1375,7 +1371,7 @@
     }
 
     function deleteStudent(index) {
-      if (!isAdmin) return;
+      if (!isEditor) return;
       const name = students[index];
       if (confirm(`Удалить ${name} из общего списка класса?`)) {
         const updated = students.filter((_, idx) => idx !== index);
@@ -1394,7 +1390,7 @@
     }
 
     async function clearAllData() {
-      if (!isAdmin) return;
+      if (!isEditor) return;
       if (confirm('ВНИМАНИЕ: Вы точно хотите стереть все уроки из облачной базы данных?')) {
         try {
           const snapshot = await db.collection('lessons').get();

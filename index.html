@@ -127,13 +127,22 @@
       color: #fff;
     }
 
-    /* Логика отображения вкладок: strict display */
+    /* Скрытие кнопок навигации для гостей без конфликта со вкладками */
+    .nav-edit-only {
+      display: none;
+    }
+
+    body.is-editor .nav-edit-only {
+      display: inline-block;
+    }
+
+    /* Чистое переключение вкладок */
     .tab-content {
-      display: none !important;
+      display: none;
     }
 
     .tab-content.active {
-      display: block !important;
+      display: block;
     }
 
     .card {
@@ -409,19 +418,6 @@
       text-align: center;
       letter-spacing: -0.01em;
     }
-
-    /* Элементы, доступные только в режиме редактирования */
-    .edit-only {
-      display: none !important;
-    }
-
-    body.is-editor .edit-only {
-      display: initial !important;
-    }
-
-    body.is-editor nav button.edit-only {
-      display: block !important;
-    }
   </style>
 </head>
 <body>
@@ -433,22 +429,22 @@
     </div>
     <div class="header-controls">
       <div id="cloud-status" class="cloud-status">Облако: Подключение...</div>
-      <div id="role-badge" class="role-badge">Только чтение</div>
+      <div id="role-badge" class="role-badge">Режим: Только чтение</div>
       <button class="btn btn-outline btn-sm" id="btn-auth-toggle" onclick="handleAuthClick()">Режим редактирования</button>
     </div>
   </header>
 
   <main>
     <nav>
-      <button class="tab-btn edit-only" id="tab-btn-current" onclick="switchTab('current-lesson')">Текущий урок</button>
+      <button class="tab-btn nav-edit-only" id="tab-btn-current" onclick="switchTab('current-lesson')">Текущий урок</button>
       <button class="tab-btn active" id="tab-btn-analytics" onclick="switchTab('analytics')">Статистика</button>
       <button class="tab-btn" id="tab-btn-schedule" onclick="switchTab('schedule-view')">Расписание</button>
       <button class="tab-btn" id="tab-btn-history" onclick="switchTab('history')">История уроков</button>
-      <button class="tab-btn edit-only" id="tab-btn-settings" onclick="switchTab('settings')">Настройки и список</button>
+      <button class="tab-btn nav-edit-only" id="tab-btn-settings" onclick="switchTab('settings')">Настройки и список</button>
     </nav>
 
     <!-- ВКЛАДКА 1: ТЕКУЩИЙ УРОК -->
-    <section id="current-lesson" class="tab-content edit-only">
+    <section id="current-lesson" class="tab-content">
       <div class="card">
         <div class="card-title">Параметры урока</div>
         <div class="form-grid">
@@ -527,7 +523,6 @@
           </div>
         </div>
 
-        <!-- Аналитические диаграммы -->
         <div class="charts-grid">
           <div class="chart-box">
             <div class="chart-box-title">Топ учеников по замечаниям</div>
@@ -585,7 +580,7 @@
     </section>
 
     <!-- ВКЛАДКА 5: НАСТРОЙКИ -->
-    <section id="settings" class="tab-content edit-only">
+    <section id="settings" class="tab-content">
       <div class="card">
         <div class="card-title">Безопасность (PIN-код для редактирования)</div>
         <div style="display: flex; gap: 8px; max-width: 320px;">
@@ -653,9 +648,9 @@
         badge.style.borderColor = 'var(--border-dark)';
         btn.textContent = 'Режим редактирования';
 
-        // Если пользователь был на вкладке редактирования, переключаем на статистику
+        // Если закрыли режим редактирования, находясь на закрытой вкладке — переводим на статистику
         const activeTab = document.querySelector('.tab-content.active');
-        if (activeTab && activeTab.classList.contains('edit-only')) {
+        if (activeTab && (activeTab.id === 'current-lesson' || activeTab.id === 'settings')) {
           switchTab('analytics');
         }
       }
@@ -687,7 +682,7 @@
             isEditor = true;
             localStorage.setItem('school_tracker_is_editor', 'true');
             updateAuthUI();
-            alert('Режим редактирования активирован!');
+            switchTab('current-lesson');
           } else {
             alert('Неверный PIN-код!');
           }
@@ -840,6 +835,12 @@
       renderAnalytics();
       renderHistory();
 
+      if (isEditor) {
+        switchTab('current-lesson');
+      } else {
+        switchTab('analytics');
+      }
+
       bindCloudSync();
     }
 
@@ -888,8 +889,7 @@
 
     function switchTab(tabId) {
       if (!isEditor && (tabId === 'current-lesson' || tabId === 'settings')) {
-        alert('Перейдите в режим редактирования для доступа к этому разделу.');
-        return;
+        tabId = 'analytics';
       }
 
       document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));

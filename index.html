@@ -8,6 +8,8 @@
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <!-- Chart.js для монохромных диаграмм -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
     :root {
@@ -36,6 +38,13 @@
       padding: 24px 16px;
       max-width: 1100px;
       margin: 0 auto;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    main {
+      flex: 1;
     }
 
     header {
@@ -309,6 +318,36 @@
       min-width: 160px;
     }
 
+    /* Сетка диаграмм */
+    .charts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .chart-box {
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 14px;
+      background: #fff;
+    }
+
+    .chart-box-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .chart-canvas-wrapper {
+      position: relative;
+      height: 250px;
+      width: 100%;
+    }
+
     .schedule-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
@@ -344,6 +383,16 @@
     .lesson-item:last-child {
       border-bottom: none;
     }
+
+    footer {
+      margin-top: 32px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--text-muted);
+      text-align: center;
+      letter-spacing: -0.01em;
+    }
   </style>
 </head>
 <body>
@@ -356,157 +405,180 @@
     <div id="cloud-status" class="cloud-status">Облако: Подключение...</div>
   </header>
 
-  <nav>
-    <button class="tab-btn active" onclick="switchTab('current-lesson')">Текущий урок</button>
-    <button class="tab-btn" onclick="switchTab('schedule-view')">Расписание</button>
-    <button class="tab-btn" onclick="switchTab('analytics')">Статистика</button>
-    <button class="tab-btn" onclick="switchTab('history')">История уроков</button>
-    <button class="tab-btn" onclick="switchTab('settings')">Настройки и список</button>
-  </nav>
+  <main>
+    <nav>
+      <button class="tab-btn active" onclick="switchTab('current-lesson')">Текущий урок</button>
+      <button class="tab-btn" onclick="switchTab('schedule-view')">Расписание</button>
+      <button class="tab-btn" onclick="switchTab('analytics')">Статистика</button>
+      <button class="tab-btn" onclick="switchTab('history')">История уроков</button>
+      <button class="tab-btn" onclick="switchTab('settings')">Настройки и список</button>
+    </nav>
 
-  <!-- ВКЛАДКА 1: ТЕКУЩИЙ УРОК -->
-  <section id="current-lesson" class="tab-content active">
-    <div class="card">
-      <div class="card-title">Параметры урока</div>
-      <div class="form-grid">
-        <div class="input-group">
-          <label>Дата</label>
-          <input type="date" id="lesson-date" onchange="autoFillSubjectBySchedule()">
+    <!-- ВКЛАДКА 1: ТЕКУЩИЙ УРОК -->
+    <section id="current-lesson" class="tab-content active">
+      <div class="card">
+        <div class="card-title">Параметры урока</div>
+        <div class="form-grid">
+          <div class="input-group">
+            <label>Дата</label>
+            <input type="date" id="lesson-date" onchange="autoFillSubjectBySchedule()">
+          </div>
+          <div class="input-group">
+            <label>Номер урока</label>
+            <select id="lesson-number" onchange="autoFillSubjectBySchedule()">
+              <option value="1">1 урок</option>
+              <option value="2">2 урок</option>
+              <option value="3">3 урок</option>
+              <option value="4">4 урок</option>
+              <option value="5">5 урок</option>
+              <option value="6">6 урок</option>
+              <option value="7">7 урок</option>
+            </select>
+          </div>
+          <div class="input-group">
+            <label>Предмет (авто или вручную)</label>
+            <input list="subjects-datalist" id="lesson-subject" placeholder="Выберите или введите...">
+            <datalist id="subjects-datalist"></datalist>
+          </div>
         </div>
-        <div class="input-group">
-          <label>Номер урока</label>
-          <select id="lesson-number" onchange="autoFillSubjectBySchedule()">
-            <option value="1">1 урок</option>
-            <option value="2">2 урок</option>
-            <option value="3">3 урок</option>
-            <option value="4">4 урок</option>
-            <option value="5">5 урок</option>
-            <option value="6">6 урок</option>
-            <option value="7">7 урок</option>
-          </select>
-        </div>
-        <div class="input-group">
-          <label>Предмет (авто или вручную)</label>
-          <input list="subjects-datalist" id="lesson-subject" placeholder="Выберите или введите...">
-          <datalist id="subjects-datalist"></datalist>
-        </div>
-      </div>
-      <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-        <button class="btn" id="btn-save-lesson" onclick="saveCurrentLesson()">Завершить и сохранить в облако</button>
-        <button class="btn btn-outline" onclick="resetCurrentLessonCounters()">Сбросить счётчики</button>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-title">
-        <span>Отметка учеников</span>
-        <input type="text" id="student-search" placeholder="Поиск по фамилии..." oninput="renderLiveStudents()" style="width: 220px;">
-      </div>
-      <div id="live-students-container" class="students-grid"></div>
-    </div>
-  </section>
-
-  <!-- ВКЛАДКА 2: РАСПИСАНИЕ -->
-  <section id="schedule-view" class="tab-content">
-    <div class="card">
-      <div class="card-title">Расписание на неделю</div>
-      <div id="schedule-container" class="schedule-grid"></div>
-    </div>
-  </section>
-
-  <!-- ВКЛАДКА 3: СТАТИСТИКА -->
-  <section id="analytics" class="tab-content">
-    <div class="card">
-      <div class="card-title">Сводный рейтинг нарушений</div>
-      <div class="filter-row">
-        <div class="filter-item">
-          <label style="font-size: 13px; color: var(--text-muted);">Период:</label>
-          <select id="filter-period" onchange="renderAnalytics()">
-            <option value="all">За всё время</option>
-            <option value="today">Только сегодня</option>
-            <option value="week">Последние 7 дней</option>
-            <option value="month">Последние 30 дней</option>
-          </select>
-        </div>
-        <div class="filter-item">
-          <label style="font-size: 13px; color: var(--text-muted);">Предмет:</label>
-          <select id="filter-subject" onchange="renderAnalytics()">
-            <option value="all">Все предметы</option>
-          </select>
-        </div>
-        <div class="filter-item">
-          <label style="font-size: 13px; color: var(--text-muted);">Сортировка:</label>
-          <select id="filter-sort" onchange="renderAnalytics()">
-            <option value="count">По количеству нарушений</option>
-            <option value="lessons">По числу уроков с телефоном</option>
-            <option value="name">По алфавиту</option>
-          </select>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <button class="btn" id="btn-save-lesson" onclick="saveCurrentLesson()">Завершить и сохранить в облако</button>
+          <button class="btn btn-outline" onclick="resetCurrentLessonCounters()">Сбросить счётчики</button>
         </div>
       </div>
-      <div style="margin-bottom: 12px; display: flex; justify-content: flex-end;">
-        <button class="btn btn-outline btn-sm" onclick="exportToCSV()">Экспорт в CSV</button>
-      </div>
-      <div style="overflow-x: auto;">
-        <table>
-          <thead>
-            <tr>
-              <th style="width: 40px;">№</th>
-              <th>Ученик</th>
-              <th style="width: 140px;">Всего замечаний</th>
-              <th style="width: 140px;">Уроков замечен</th>
-              <th style="width: 180px;">Интенсивность</th>
-            </tr>
-          </thead>
-          <tbody id="analytics-table-body"></tbody>
-        </table>
-      </div>
-    </div>
-  </section>
 
-  <!-- ВКЛАДКА 4: ИСТОРИЯ -->
-  <section id="history" class="tab-content">
-    <div class="card">
-      <div class="card-title">Сохранённые уроки (Облако)</div>
-      <div style="overflow-x: auto;">
-        <table>
-          <thead>
-            <tr>
-              <th>Дата</th>
-              <th>№</th>
-              <th>Предмет</th>
-              <th>Нарушители (кол-во замечаний)</th>
-              <th style="width: 60px;"></th>
-            </tr>
-          </thead>
-          <tbody id="history-table-body"></tbody>
-        </table>
+      <div class="card">
+        <div class="card-title">
+          <span>Отметка учеников</span>
+          <input type="text" id="student-search" placeholder="Поиск по фамилии..." oninput="renderLiveStudents()" style="width: 220px;">
+        </div>
+        <div id="live-students-container" class="students-grid"></div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- ВКЛАДКА 5: НАСТРОЙКИ -->
-  <section id="settings" class="tab-content">
-    <div class="card">
-      <div class="card-title">Список класса (Общий)</div>
-      <div style="display: flex; gap: 8px; margin-bottom: 16px;">
-        <input type="text" id="new-student-name" placeholder="Фамилия Имя">
-        <button class="btn" onclick="addSingleStudent()">Добавить</button>
+    <!-- ВКЛАДКА 2: РАСПИСАНИЕ -->
+    <section id="schedule-view" class="tab-content">
+      <div class="card">
+        <div class="card-title">Расписание на неделю</div>
+        <div id="schedule-container" class="schedule-grid"></div>
       </div>
-      <div style="margin-bottom: 16px;">
-        <textarea id="bulk-students" rows="4" placeholder="Массовая вставка: каждый ученик с новой строки"></textarea>
-        <button class="btn btn-outline btn-sm" style="margin-top: 6px;" onclick="addBulkStudents()">Загрузить списком</button>
-      </div>
-      <div id="settings-students-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px;"></div>
-    </div>
+    </section>
 
-    <div class="card">
-      <div class="card-title">Резервная копия данных</div>
-      <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-        <button class="btn btn-outline btn-sm" onclick="backupExport()">Экспорт копии (JSON)</button>
-        <button class="btn btn-outline btn-sm" style="color: #991b1b; border-color: #fca5a5;" onclick="clearAllData()">Очистить базу в облаке</button>
+    <!-- ВКЛАДКА 3: СТАТИСТИКА -->
+    <section id="analytics" class="tab-content">
+      <div class="card">
+        <div class="card-title">Сводный рейтинг нарушений</div>
+        <div class="filter-row">
+          <div class="filter-item">
+            <label style="font-size: 13px; color: var(--text-muted);">Период:</label>
+            <select id="filter-period" onchange="renderAnalytics()">
+              <option value="all">За всё время</option>
+              <option value="today">Только сегодня</option>
+              <option value="week">Последние 7 дней</option>
+              <option value="month">Последние 30 дней</option>
+            </select>
+          </div>
+          <div class="filter-item">
+            <label style="font-size: 13px; color: var(--text-muted);">Предмет:</label>
+            <select id="filter-subject" onchange="renderAnalytics()">
+              <option value="all">Все предметы</option>
+            </select>
+          </div>
+          <div class="filter-item">
+            <label style="font-size: 13px; color: var(--text-muted);">Сортировка:</label>
+            <select id="filter-sort" onchange="renderAnalytics()">
+              <option value="count">По количеству нарушений</option>
+              <option value="lessons">По числу уроков с телефоном</option>
+              <option value="name">По алфавиту</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Аналитические диаграммы -->
+        <div class="charts-grid">
+          <div class="chart-box">
+            <div class="chart-box-title">Топ учеников по замечаниям</div>
+            <div class="chart-canvas-wrapper">
+              <canvas id="chart-top-students"></canvas>
+            </div>
+          </div>
+          <div class="chart-box">
+            <div class="chart-box-title">Распределение по предметам</div>
+            <div class="chart-canvas-wrapper">
+              <canvas id="chart-by-subjects"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-bottom: 12px; display: flex; justify-content: flex-end;">
+          <button class="btn btn-outline btn-sm" onclick="exportToCSV()">Экспорт в CSV</button>
+        </div>
+        <div style="overflow-x: auto;">
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 40px;">№</th>
+                <th>Ученик</th>
+                <th style="width: 140px;">Всего замечаний</th>
+                <th style="width: 140px;">Уроков замечен</th>
+                <th style="width: 180px;">Интенсивность</th>
+              </tr>
+            </thead>
+            <tbody id="analytics-table-body"></tbody>
+          </table>
+        </div>
       </div>
-    </div>
-  </section>
+    </section>
+
+    <!-- ВКЛАДКА 4: ИСТОРИЯ -->
+    <section id="history" class="tab-content">
+      <div class="card">
+        <div class="card-title">Сохранённые уроки (Облако)</div>
+        <div style="overflow-x: auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>Дата</th>
+                <th>№</th>
+                <th>Предмет</th>
+                <th>Нарушители (кол-во замечаний)</th>
+                <th style="width: 60px;"></th>
+              </tr>
+            </thead>
+            <tbody id="history-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ВКЛАДКА 5: НАСТРОЙКИ -->
+    <section id="settings" class="tab-content">
+      <div class="card">
+        <div class="card-title">Список класса (Общий)</div>
+        <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+          <input type="text" id="new-student-name" placeholder="Фамилия Имя">
+          <button class="btn" onclick="addSingleStudent()">Добавить</button>
+        </div>
+        <div style="margin-bottom: 16px;">
+          <textarea id="bulk-students" rows="4" placeholder="Массовая вставка: каждый ученик с новой строки"></textarea>
+          <button class="btn btn-outline btn-sm" style="margin-top: 6px;" onclick="addBulkStudents()">Загрузить списком</button>
+        </div>
+        <div id="settings-students-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px;"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Резервная копия данных</div>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+          <button class="btn btn-outline btn-sm" onclick="backupExport()">Экспорт копии (JSON)</button>
+          <button class="btn btn-outline btn-sm" style="color: #991b1b; border-color: #fca5a5;" onclick="clearAllData()">Очистить базу в облаке</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    Учет ведется составом старост 9В класса. Возможны несоответствия.
+  </footer>
 
   <script>
     // --- 1. Конфигурация Firebase ---
@@ -590,11 +662,12 @@
       }
     };
 
+    // Исправлено: Анастасия Руковицына
     const DEFAULT_STUDENTS = [
       "Александра Журавлева",
       "Алексей Верный",
       "Анастасия Барышева",
-      "Анастасия Роман",
+      "Анастасия Руковицына",
       "Анна Ширманова",
       "Ариана Шестирекова",
       "Виктория Гусева",
@@ -625,6 +698,9 @@
     let lessonsHistory = JSON.parse(localStorage.getItem('offense_history')) || [];
     let currentLessonOffenses = {};
 
+    let chartStudentsInstance = null;
+    let chartSubjectsInstance = null;
+
     function updateCloudStatus(text, isOnline = true) {
       const el = document.getElementById('cloud-status');
       el.textContent = `Облако: ${text}`;
@@ -646,33 +722,42 @@
       renderAnalytics();
       renderHistory();
 
-      // Слушатели базы данных в реальном времени
       bindCloudSync();
     }
 
     function bindCloudSync() {
-      // Синхронизация учеников
       db.collection('settings').doc('students').onSnapshot(doc => {
         if (doc.exists && doc.data().list) {
-          students = doc.data().list;
+          let list = doc.data().list;
+          // Автозамена опечатки в старых сохраненных данных
+          if (list.includes("Анастасия Роман")) {
+            list = list.map(name => name === "Анастасия Роман" ? "Анастасия Руковицына" : name);
+            db.collection('settings').doc('students').set({ list });
+          }
+          students = list;
           localStorage.setItem('offense_students', JSON.stringify(students));
           renderLiveStudents();
           renderSettingsStudents();
           renderAnalytics();
         } else {
-          // Инициализируем список в базе, если документ пустой
           db.collection('settings').doc('students').set({ list: DEFAULT_STUDENTS });
         }
       }, err => {
         console.warn('Ошибка связи со списком учеников:', err);
       });
 
-      // Синхронизация уроков
       db.collection('lessons').orderBy('date', 'desc').onSnapshot(snapshot => {
         updateCloudStatus('Онлайн', true);
         const fetched = [];
         snapshot.forEach(doc => {
-          fetched.push({ docId: doc.id, ...doc.data() });
+          const data = doc.data();
+          // Автозамена опечатки в старых уроках
+          if (data.offenses && data.offenses["Анастасия Роман"] !== undefined) {
+            data.offenses["Анастасия Руковицына"] = (data.offenses["Анастасия Руковицына"] || 0) + data.offenses["Анастасия Роман"];
+            delete data.offenses["Анастасия Роман"];
+            db.collection('lessons').doc(doc.id).update({ offenses: data.offenses });
+          }
+          fetched.push({ docId: doc.id, ...data });
         });
         lessonsHistory = fetched;
         localStorage.setItem('offense_history', JSON.stringify(lessonsHistory));
@@ -900,15 +985,22 @@
       });
 
       const stats = {};
+      const subjectStats = {};
+
       students.forEach(s => {
         stats[s] = { name: s, totalCount: 0, lessonsWithOffense: 0 };
       });
 
       filteredLessons.forEach(l => {
+        const lSub = l.subject || 'Другое';
         for (const [student, count] of Object.entries(l.offenses || {})) {
+          const val = Number(count) || 0;
           if (stats[student]) {
-            stats[student].totalCount += Number(count) || 0;
-            if (count > 0) stats[student].lessonsWithOffense += 1;
+            stats[student].totalCount += val;
+            if (val > 0) stats[student].lessonsWithOffense += 1;
+          }
+          if (val > 0) {
+            subjectStats[lSub] = (subjectStats[lSub] || 0) + val;
           }
         }
       });
@@ -943,6 +1035,93 @@
           </td>
         `;
         tbody.appendChild(tr);
+      });
+
+      renderCharts(statsArray, subjectStats);
+    }
+
+    function renderCharts(statsArray, subjectStats) {
+      // 1. Горизонтальная гистограмма Топ-7 нарушителей
+      const topStudents = [...statsArray]
+        .filter(s => s.totalCount > 0)
+        .sort((a, b) => b.totalCount - a.totalCount)
+        .slice(0, 7);
+
+      const ctxTop = document.getElementById('chart-top-students').getContext('2d');
+      if (chartStudentsInstance) chartStudentsInstance.destroy();
+
+      chartStudentsInstance = new Chart(ctxTop, {
+        type: 'bar',
+        data: {
+          labels: topStudents.map(s => s.name),
+          datasets: [{
+            data: topStudents.map(s => s.totalCount),
+            backgroundColor: '#111827',
+            borderRadius: 3,
+            borderSkipped: false
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: ctx => `Замечаний: ${ctx.raw}`
+              }
+            }
+          },
+          scales: {
+            x: {
+              beginAtZero: true,
+              ticks: { stepSize: 1, color: '#6b7280', font: { size: 11 } },
+              grid: { color: '#e5e7eb' }
+            },
+            y: {
+              ticks: { color: '#111827', font: { size: 12 } },
+              grid: { display: false }
+            }
+          }
+        }
+      });
+
+      // 2. Круговая диаграмма по предметам
+      const subjectLabels = Object.keys(subjectStats);
+      const subjectCounts = Object.values(subjectStats);
+
+      const ctxSub = document.getElementById('chart-by-subjects').getContext('2d');
+      if (chartSubjectsInstance) chartSubjectsInstance.destroy();
+
+      // Монохромная палитра оттенков
+      const monoPalette = [
+        '#111827', '#374151', '#4b5563', '#6b7280', 
+        '#9ca3af', '#d1d5db', '#1f2937', '#e5e7eb'
+      ];
+
+      chartSubjectsInstance = new Chart(ctxSub, {
+        type: 'doughnut',
+        data: {
+          labels: subjectLabels.length ? subjectLabels : ['Нет данных'],
+          datasets: [{
+            data: subjectCounts.length ? subjectCounts : [1],
+            backgroundColor: subjectCounts.length ? monoPalette.slice(0, subjectLabels.length) : ['#e5e7eb'],
+            borderWidth: 1,
+            borderColor: '#ffffff'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'right',
+              labels: { boxWidth: 12, font: { size: 11 }, color: '#374151' }
+            }
+          },
+          cutout: '65%'
+        }
       });
     }
 

@@ -70,6 +70,13 @@
       margin-top: 4px;
     }
 
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
     .cloud-status {
       font-size: 12px;
       padding: 4px 8px;
@@ -83,6 +90,15 @@
       color: #111827;
       border-color: #111827;
       font-weight: 500;
+    }
+
+    .role-badge {
+      font-size: 12px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      border: 1px solid var(--border-dark);
+      background: #fff;
+      font-weight: 600;
     }
 
     nav {
@@ -318,7 +334,6 @@
       min-width: 160px;
     }
 
-    /* Сетка диаграмм */
     .charts-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -393,6 +408,23 @@
       text-align: center;
       letter-spacing: -0.01em;
     }
+
+    /* Скрытие элементов редактора для гостей */
+    .admin-only {
+      display: none !important;
+    }
+
+    body.is-admin .admin-only {
+      display: initial !important;
+    }
+
+    body.is-admin nav .admin-only {
+      display: block !important;
+    }
+
+    body.is-admin div.admin-only {
+      display: flex !important;
+    }
   </style>
 </head>
 <body>
@@ -402,20 +434,24 @@
       <h1>Журнал дисциплины на уроках</h1>
       <p class="subtitle">Синхронизированная облачная фиксация нарушений</p>
     </div>
-    <div id="cloud-status" class="cloud-status">Облако: Подключение...</div>
+    <div class="header-controls">
+      <div id="cloud-status" class="cloud-status">Облако: Подключение...</div>
+      <div id="role-badge" class="role-badge">Гость (просмотр)</div>
+      <button class="btn btn-outline btn-sm" id="btn-auth-toggle" onclick="handleAuthClick()">Войти как староста</button>
+    </div>
   </header>
 
   <main>
     <nav>
-      <button class="tab-btn active" onclick="switchTab('current-lesson')">Текущий урок</button>
-      <button class="tab-btn" onclick="switchTab('schedule-view')">Расписание</button>
-      <button class="tab-btn" onclick="switchTab('analytics')">Статистика</button>
-      <button class="tab-btn" onclick="switchTab('history')">История уроков</button>
-      <button class="tab-btn" onclick="switchTab('settings')">Настройки и список</button>
+      <button class="tab-btn admin-only" id="tab-btn-current" onclick="switchTab('current-lesson')">Текущий урок</button>
+      <button class="tab-btn active" id="tab-btn-analytics" onclick="switchTab('analytics')">Статистика</button>
+      <button class="tab-btn" id="tab-btn-schedule" onclick="switchTab('schedule-view')">Расписание</button>
+      <button class="tab-btn" id="tab-btn-history" onclick="switchTab('history')">История уроков</button>
+      <button class="tab-btn admin-only" id="tab-btn-settings" onclick="switchTab('settings')">Настройки и список</button>
     </nav>
 
-    <!-- ВКЛАДКА 1: ТЕКУЩИЙ УРОК -->
-    <section id="current-lesson" class="tab-content active">
+    <!-- ВКЛАДКА 1: ТЕКУЩИЙ УРОК (Только для старосты) -->
+    <section id="current-lesson" class="tab-content admin-only">
       <div class="card">
         <div class="card-title">Параметры урока</div>
         <div class="form-grid">
@@ -465,7 +501,7 @@
     </section>
 
     <!-- ВКЛАДКА 3: СТАТИСТИКА -->
-    <section id="analytics" class="tab-content">
+    <section id="analytics" class="tab-content active">
       <div class="card">
         <div class="card-title">Сводный рейтинг нарушений</div>
         <div class="filter-row">
@@ -551,8 +587,16 @@
       </div>
     </section>
 
-    <!-- ВКЛАДКА 5: НАСТРОЙКИ -->
-    <section id="settings" class="tab-content">
+    <!-- ВКЛАДКА 5: НАСТРОЙКИ (Только для старосты) -->
+    <section id="settings" class="tab-content admin-only">
+      <div class="card">
+        <div class="card-title">Безопасность (PIN-код старосты)</div>
+        <div style="display: flex; gap: 8px; max-width: 320px;">
+          <input type="password" id="new-pin-code" placeholder="Новый PIN-код">
+          <button class="btn btn-outline btn-sm" onclick="changePinCode()">Сменить PIN</button>
+        </div>
+      </div>
+
       <div class="card">
         <div class="card-title">Список класса (Общий)</div>
         <div style="display: flex; gap: 8px; margin-bottom: 16px;">
@@ -594,7 +638,85 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // --- 2. Расписание уроков ---
+    // --- 2. Авторизация по PIN-коду ---
+    let isAdmin = localStorage.getItem('school_tracker_is_admin') === 'true';
+
+    function updateAuthUI() {
+      const badge = document.getElementById('role-badge');
+      const btn = document.getElementById('btn-auth-toggle');
+
+      if (isAdmin) {
+        document.body.classList.add('is-admin');
+        badge.textContent = 'Староста (полный доступ)';
+        badge.style.borderColor = '#111827';
+        btn.textContent = 'Выйти';
+      } else {
+        document.body.classList.remove('is-admin');
+        badge.textContent = 'Гость (просмотр)';
+        badge.style.borderColor = 'var(--border-dark)';
+        btn.textContent = 'Войти как староста';
+
+        // Если гость был на закрытой вкладке, перекидываем в статистику
+        const activeTab = document.querySelector('.tab-content.active');
+        if (activeTab && activeTab.classList.contains('admin-only')) {
+          switchTab('analytics');
+        }
+      }
+      renderScheduleView();
+      renderHistory();
+    }
+
+    async function handleAuthClick() {
+      if (isAdmin) {
+        if (confirm('Выйти из режима старосты?')) {
+          isAdmin = false;
+          localStorage.removeItem('school_tracker_is_admin');
+          updateAuthUI();
+        }
+      } else {
+        const enteredPin = prompt('Введите PIN-код старосты:');
+        if (!enteredPin) return;
+
+        try {
+          const doc = await db.collection('settings').doc('auth').get();
+          let serverPin = '9999';
+          if (doc.exists && doc.data().pin) {
+            serverPin = doc.data().pin;
+          } else {
+            // Инициализация стандартного PIN, если еще нет в базе
+            await db.collection('settings').doc('auth').set({ pin: '9999' });
+          }
+
+          if (enteredPin.trim() === serverPin.trim()) {
+            isAdmin = true;
+            localStorage.setItem('school_tracker_is_admin', 'true');
+            updateAuthUI();
+            alert('Успешный вход!');
+          } else {
+            alert('Неверный PIN-код!');
+          }
+        } catch (err) {
+          alert('Ошибка связи с базой: ' + err.message);
+        }
+      }
+    }
+
+    async function changePinCode() {
+      const newPin = document.getElementById('new-pin-code').value.trim();
+      if (!newPin || newPin.length < 4) {
+        alert('PIN-код должен быть не менее 4 символов');
+        return;
+      }
+      try {
+        await db.collection('settings').doc('auth').set({ pin: newPin });
+        document.getElementById('new-pin-code').value = '';
+        alert('PIN-код успешно изменен!');
+      } catch (err) {
+        alert('Ошибка при сохранении PIN-кода: ' + err.message);
+      }
+    }
+
+    // --- 3. Расписание уроков ---
     const WEEKLY_SCHEDULE = {
       1: {
         name: "Понедельник",
@@ -662,7 +784,6 @@
       }
     };
 
-    // Исправлено: Анастасия Руковицына
     const DEFAULT_STUDENTS = [
       "Александра Журавлева",
       "Алексей Верный",
@@ -713,6 +834,7 @@
 
     function init() {
       document.getElementById('lesson-date').valueAsDate = new Date();
+      updateAuthUI();
       renderScheduleView();
       renderDatalist();
       autoFillSubjectBySchedule();
@@ -729,7 +851,6 @@
       db.collection('settings').doc('students').onSnapshot(doc => {
         if (doc.exists && doc.data().list) {
           let list = doc.data().list;
-          // Автозамена опечатки в старых сохраненных данных
           if (list.includes("Анастасия Роман")) {
             list = list.map(name => name === "Анастасия Роман" ? "Анастасия Руковицына" : name);
             db.collection('settings').doc('students').set({ list });
@@ -751,7 +872,6 @@
         const fetched = [];
         snapshot.forEach(doc => {
           const data = doc.data();
-          // Автозамена опечатки в старых уроках
           if (data.offenses && data.offenses["Анастасия Роман"] !== undefined) {
             data.offenses["Анастасия Руковицына"] = (data.offenses["Анастасия Руковицына"] || 0) + data.offenses["Анастасия Роман"];
             delete data.offenses["Анастасия Роман"];
@@ -771,12 +891,19 @@
     }
 
     function switchTab(tabId) {
+      if (!isAdmin && (tabId === 'current-lesson' || tabId === 'settings')) {
+        alert('Доступ запрещен. Войдите как староста.');
+        return;
+      }
+
       document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
       document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
       
-      const targetBtn = Array.from(document.querySelectorAll('.tab-btn')).find(b => b.getAttribute('onclick').includes(tabId));
+      const targetBtn = Array.from(document.querySelectorAll('.tab-btn')).find(b => b.getAttribute('onclick') && b.getAttribute('onclick').includes(tabId));
       if (targetBtn) targetBtn.classList.add('active');
-      document.getElementById(tabId).classList.add('active');
+      
+      const targetSection = document.getElementById(tabId);
+      if (targetSection) targetSection.classList.add('active');
 
       if (tabId === 'analytics') {
         updateFilterSubjects();
@@ -806,6 +933,11 @@
     }
 
     function selectLessonFromSchedule(dayIdx, lessonNum, subject) {
+      if (!isAdmin) {
+        alert('Для отметки уроков необходимо войти как староста.');
+        return;
+      }
+
       const now = new Date();
       const currentDay = now.getDay() || 7;
       const diff = dayIdx - currentDay;
@@ -832,13 +964,17 @@
           lessonsHtml = '<div style="color: var(--text-muted); font-size: 13px; padding: 10px 0;">Уроков нет</div>';
         } else {
           d.lessons.forEach(l => {
+            const btnHtml = isAdmin 
+              ? `<button class="btn btn-outline btn-sm" onclick="selectLessonFromSchedule(${day}, ${l.num}, '${l.subject}')">Отметить</button>`
+              : '';
+
             lessonsHtml += `
               <div class="lesson-item">
                 <div>
                   <strong style="margin-right: 6px;">${l.num}.</strong>
                   <span>${l.subject}</span>
                 </div>
-                <button class="btn btn-outline btn-sm" onclick="selectLessonFromSchedule(${day}, ${l.num}, '${l.subject}')">Отметить</button>
+                ${btnHtml}
               </div>
             `;
           });
@@ -893,6 +1029,7 @@
     }
 
     function changeOffenseCount(name, delta) {
+      if (!isAdmin) return;
       let current = currentLessonOffenses[name] || 0;
       current += delta;
       if (current <= 0) {
@@ -904,6 +1041,7 @@
     }
 
     function resetCurrentLessonCounters() {
+      if (!isAdmin) return;
       if (confirm('Сбросить текущие отметки для этого урока?')) {
         currentLessonOffenses = {};
         renderLiveStudents();
@@ -911,6 +1049,7 @@
     }
 
     async function saveCurrentLesson() {
+      if (!isAdmin) return;
       const date = document.getElementById('lesson-date').value;
       const number = document.getElementById('lesson-number').value;
       const subject = document.getElementById('lesson-subject').value.trim() || 'Без предмета';
@@ -1041,7 +1180,6 @@
     }
 
     function renderCharts(statsArray, subjectStats) {
-      // 1. Горизонтальная гистограмма Топ-7 нарушителей
       const topStudents = [...statsArray]
         .filter(s => s.totalCount > 0)
         .sort((a, b) => b.totalCount - a.totalCount)
@@ -1087,14 +1225,12 @@
         }
       });
 
-      // 2. Круговая диаграмма по предметам
       const subjectLabels = Object.keys(subjectStats);
       const subjectCounts = Object.values(subjectStats);
 
       const ctxSub = document.getElementById('chart-by-subjects').getContext('2d');
       if (chartSubjectsInstance) chartSubjectsInstance.destroy();
 
-      // Монохромная палитра оттенков
       const monoPalette = [
         '#111827', '#374151', '#4b5563', '#6b7280', 
         '#9ca3af', '#d1d5db', '#1f2937', '#e5e7eb'
@@ -1159,22 +1295,24 @@
           .map(([name, count]) => `${name} (${count})`)
           .join(', ') || '—';
 
+        const deleteCol = isAdmin 
+          ? `<button class="danger-link" onclick="deleteHistoryItem('${l.docId}')">Удалить</button>` 
+          : '';
+
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td>${l.date}</td>
           <td>${l.number}</td>
           <td><strong>${l.subject}</strong></td>
           <td style="max-width: 420px; font-size: 13px;">${offensesSummary}</td>
-          <td style="text-align: right;">
-            <button class="danger-link" onclick="deleteHistoryItem('${l.docId}')">Удалить</button>
-          </td>
+          <td style="text-align: right;">${deleteCol}</td>
         `;
         tbody.appendChild(tr);
       });
     }
 
     async function deleteHistoryItem(docId) {
-      if (!docId) return;
+      if (!isAdmin || !docId) return;
       if (confirm('Удалить эту запись об уроке из базы данных?')) {
         try {
           await db.collection('lessons').doc(docId).delete();
@@ -1199,6 +1337,7 @@
     }
 
     async function updateStudentsInDb(newList) {
+      if (!isAdmin) return;
       try {
         await db.collection('settings').doc('students').set({ list: newList });
       } catch (err) {
@@ -1207,6 +1346,7 @@
     }
 
     function addSingleStudent() {
+      if (!isAdmin) return;
       const input = document.getElementById('new-student-name');
       const name = input.value.trim();
       if (!name) return;
@@ -1220,6 +1360,7 @@
     }
 
     function addBulkStudents() {
+      if (!isAdmin) return;
       const textarea = document.getElementById('bulk-students');
       const lines = textarea.value.split('\n').map(l => l.replace(/^\d+[\.\)]\s*/, '').trim()).filter(l => l.length > 0);
       if (lines.length === 0) return;
@@ -1234,6 +1375,7 @@
     }
 
     function deleteStudent(index) {
+      if (!isAdmin) return;
       const name = students[index];
       if (confirm(`Удалить ${name} из общего списка класса?`)) {
         const updated = students.filter((_, idx) => idx !== index);
@@ -1252,6 +1394,7 @@
     }
 
     async function clearAllData() {
+      if (!isAdmin) return;
       if (confirm('ВНИМАНИЕ: Вы точно хотите стереть все уроки из облачной базы данных?')) {
         try {
           const snapshot = await db.collection('lessons').get();

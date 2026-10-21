@@ -36,7 +36,7 @@
       color: var(--text);
       line-height: 1.5;
       padding: 24px 16px;
-      max-width: 1100px;
+      max-width: 1150px;
       margin: 0 auto;
       min-height: 100vh;
       display: flex;
@@ -127,7 +127,6 @@
       color: #fff;
     }
 
-    /* Скрытие кнопок навигации для гостей без конфликта со вкладками */
     .nav-edit-only {
       display: none;
     }
@@ -136,7 +135,6 @@
       display: inline-block;
     }
 
-    /* Чистое переключение вкладок */
     .tab-content {
       display: none;
     }
@@ -225,32 +223,70 @@
       font-size: 12px;
     }
 
+    /* Сетка учеников с 2 типами нарушений */
     .students-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      gap: 10px;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 12px;
       margin-top: 16px;
     }
 
     .student-card {
       border: 1px solid var(--border);
-      border-radius: 4px;
+      border-radius: 5px;
       padding: 12px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
       background: var(--card-bg);
       user-select: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
     }
 
-    .student-card.has-offense {
+    .student-card.has-short {
+      border-color: var(--border-dark);
+      background-color: #fafafa;
+    }
+
+    .student-card.has-long {
       border-color: var(--text);
+      border-width: 1.5px;
       background-color: var(--hover-bg);
     }
 
     .student-card .name {
       font-size: 14px;
+      font-weight: 600;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .student-card .total-badge {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 1px 6px;
+      border-radius: 3px;
+      background: var(--text);
+      color: #fff;
+    }
+
+    .offense-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+    }
+
+    .offense-label {
+      color: var(--text-muted);
       font-weight: 500;
+    }
+
+    .offense-label.long-label {
+      color: var(--text);
+      font-weight: 600;
     }
 
     .counter-controls {
@@ -260,8 +296,8 @@
     }
 
     .counter-btn {
-      width: 28px;
-      height: 28px;
+      width: 26px;
+      height: 26px;
       border: 1px solid var(--border-dark);
       background: #fff;
       display: flex;
@@ -270,6 +306,7 @@
       cursor: pointer;
       font-weight: 700;
       border-radius: 3px;
+      font-size: 14px;
     }
 
     .counter-btn:hover {
@@ -277,21 +314,58 @@
     }
 
     .count-display {
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 700;
       min-width: 18px;
       text-align: center;
     }
 
+    /* Карточки сводных метрик (KPI) */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .kpi-card {
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      padding: 14px;
+      background: #fafafa;
+    }
+
+    .kpi-label {
+      font-size: 12px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      font-weight: 600;
+    }
+
+    .kpi-value {
+      font-size: 22px;
+      font-weight: 700;
+      margin-top: 4px;
+      color: var(--text);
+    }
+
+    .kpi-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* Таблицы */
     table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 14px;
+      font-size: 13px;
       text-align: left;
     }
 
     th, td {
-      padding: 10px 12px;
+      padding: 10px 10px;
       border-bottom: 1px solid var(--border);
     }
 
@@ -299,6 +373,7 @@
       font-weight: 600;
       color: var(--text-muted);
       border-bottom: 2px solid var(--border-dark);
+      white-space: nowrap;
     }
 
     tr:hover td {
@@ -308,15 +383,21 @@
     .progress-bar-container {
       width: 100%;
       background: var(--border);
-      height: 6px;
+      height: 8px;
       border-radius: 3px;
       overflow: hidden;
       margin-top: 4px;
+      display: flex;
     }
 
-    .progress-bar {
+    .progress-bar-short {
       height: 100%;
-      background: var(--text);
+      background: #9ca3af;
+    }
+
+    .progress-bar-long {
+      height: 100%;
+      background: #111827;
     }
 
     .danger-link {
@@ -335,13 +416,13 @@
     .filter-row {
       display: flex;
       gap: 12px;
-      margin-bottom: 16px;
+      margin-bottom: 18px;
       flex-wrap: wrap;
     }
 
     .filter-item {
       flex: 1;
-      min-width: 160px;
+      min-width: 150px;
     }
 
     .charts-grid {
@@ -359,7 +440,7 @@
     }
 
     .chart-box-title {
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 600;
       color: var(--text-muted);
       margin-bottom: 12px;
@@ -409,6 +490,22 @@
       border-bottom: none;
     }
 
+    .legend-inline {
+      display: flex;
+      gap: 14px;
+      font-size: 12px;
+      color: var(--text-muted);
+      align-items: center;
+    }
+
+    .dot {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      margin-right: 4px;
+    }
+
     footer {
       margin-top: 32px;
       padding-top: 16px;
@@ -425,7 +522,7 @@
   <header>
     <div>
       <h1>Журнал дисциплины на уроках</h1>
-      <p class="subtitle">Синхронизированная облачная фиксация нарушений</p>
+      <p class="subtitle">Синхронизированный учёт использования телефонов (кратко / долго)</p>
     </div>
     <div class="header-controls">
       <div id="cloud-status" class="cloud-status">Облако: Подключение...</div>
@@ -478,7 +575,12 @@
 
       <div class="card">
         <div class="card-title">
-          <span>Отметка учеников</span>
+          <div>
+            <span>Отметка учеников</span>
+            <div style="font-size: 12px; font-weight: 400; color: var(--text-muted); margin-top: 2px;">
+              «Просто открыл» — краткое использование; «Сидел долго» — продолжительное время
+            </div>
+          </div>
           <input type="text" id="student-search" placeholder="Поиск по фамилии..." oninput="renderLiveStudents()" style="width: 220px;">
         </div>
         <div id="live-students-container" class="students-grid"></div>
@@ -496,10 +598,17 @@
     <!-- ВКЛАДКА 3: СТАТИСТИКА -->
     <section id="analytics" class="tab-content active">
       <div class="card">
-        <div class="card-title">Сводный рейтинг нарушений</div>
+        <div class="card-title">
+          <span>Детальная аналитика нарушений</span>
+          <div class="legend-inline">
+            <span><i class="dot" style="background:#9ca3af;"></i>Просто открыл</span>
+            <span><i class="dot" style="background:#111827;"></i>Сидел долго</span>
+          </div>
+        </div>
+
         <div class="filter-row">
           <div class="filter-item">
-            <label style="font-size: 13px; color: var(--text-muted);">Период:</label>
+            <label style="font-size: 12px; color: var(--text-muted);">Период:</label>
             <select id="filter-period" onchange="renderAnalytics()">
               <option value="all">За всё время</option>
               <option value="today">Только сегодня</option>
@@ -508,24 +617,59 @@
             </select>
           </div>
           <div class="filter-item">
-            <label style="font-size: 13px; color: var(--text-muted);">Предмет:</label>
+            <label style="font-size: 12px; color: var(--text-muted);">Предмет:</label>
             <select id="filter-subject" onchange="renderAnalytics()">
               <option value="all">Все предметы</option>
             </select>
           </div>
           <div class="filter-item">
-            <label style="font-size: 13px; color: var(--text-muted);">Сортировка:</label>
+            <label style="font-size: 12px; color: var(--text-muted);">Тип замечания:</label>
+            <select id="filter-type" onchange="renderAnalytics()">
+              <option value="all">Все типы (Кратко + Долго)</option>
+              <option value="short">Только «Просто открыл»</option>
+              <option value="long">Только «Сидел долго»</option>
+            </select>
+          </div>
+          <div class="filter-item">
+            <label style="font-size: 12px; color: var(--text-muted);">Сортировка:</label>
             <select id="filter-sort" onchange="renderAnalytics()">
-              <option value="count">По количеству нарушений</option>
+              <option value="total">По сумме замечаний</option>
+              <option value="long">По долгим зависаниям</option>
+              <option value="short">По кратким открытиям</option>
               <option value="lessons">По числу уроков с телефоном</option>
               <option value="name">По алфавиту</option>
             </select>
           </div>
         </div>
 
+        <!-- Карточки KPI -->
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-label">Всего замечаний</div>
+            <div class="kpi-value" id="kpi-total">0</div>
+            <div class="kpi-sub" id="kpi-lessons-count">За 0 проведённых уроков</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Кратко / Долго</div>
+            <div class="kpi-value" id="kpi-split">0 / 0</div>
+            <div class="kpi-sub" id="kpi-split-pct">Соотношение типов</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Лидер по предметам</div>
+            <div class="kpi-value" id="kpi-top-subject" style="font-size: 16px; margin-top: 8px;">—</div>
+            <div class="kpi-sub" id="kpi-top-subject-count">Больше всего замечаний</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Среднее за урок</div>
+            <div class="kpi-value" id="kpi-avg">0</div>
+            <div class="kpi-sub">Замечаний в среднем на 1 урок</div>
+          </div>
+        </div>
+
+        <!-- Диаграммы -->
         <div class="charts-grid">
           <div class="chart-box">
-            <div class="chart-box-title">Топ учеников по замечаниям</div>
+            <div class="chart-box-title">Топ-8 учеников (Кратко + Долго)</div>
             <div class="chart-canvas-wrapper">
               <canvas id="chart-top-students"></canvas>
             </div>
@@ -536,20 +680,29 @@
               <canvas id="chart-by-subjects"></canvas>
             </div>
           </div>
+          <div class="chart-box">
+            <div class="chart-box-title">Активность по дням недели</div>
+            <div class="chart-canvas-wrapper">
+              <canvas id="chart-by-days"></canvas>
+            </div>
+          </div>
         </div>
 
         <div style="margin-bottom: 12px; display: flex; justify-content: flex-end;">
-          <button class="btn btn-outline btn-sm" onclick="exportToCSV()">Экспорт в CSV</button>
+          <button class="btn btn-outline btn-sm" onclick="exportToCSV()">Экспорт таблицы в CSV</button>
         </div>
         <div style="overflow-x: auto;">
           <table>
             <thead>
               <tr>
-                <th style="width: 40px;">№</th>
+                <th style="width: 36px;">№</th>
                 <th>Ученик</th>
-                <th style="width: 140px;">Всего замечаний</th>
-                <th style="width: 140px;">Уроков замечен</th>
-                <th style="width: 180px;">Интенсивность</th>
+                <th>Просто открыл</th>
+                <th>Сидел долго</th>
+                <th>Всего раз</th>
+                <th>Уроков замечен</th>
+                <th>% уроков</th>
+                <th style="width: 170px;">Соотношение</th>
               </tr>
             </thead>
             <tbody id="analytics-table-body"></tbody>
@@ -569,7 +722,7 @@
                 <th>Дата</th>
                 <th>№</th>
                 <th>Предмет</th>
-                <th>Нарушители (кол-во замечаний)</th>
+                <th>Нарушители (Кратко / Долго)</th>
                 <th style="width: 60px;"></th>
               </tr>
             </thead>
@@ -630,6 +783,21 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
+    // --- Вспомогательная функция нормализации старых и новых записей ---
+    // Все старые числовые отметки автоматически считаются как "Просто открыл" (short)
+    function parseOffenseEntry(val) {
+      if (typeof val === 'number') {
+        return { short: val, long: 0 };
+      }
+      if (val && typeof val === 'object') {
+        return {
+          short: Number(val.short) || 0,
+          long: Number(val.long) || 0
+        };
+      }
+      return { short: 0, long: 0 };
+    }
+
     // --- 2. Режим редактирования ---
     let isEditor = localStorage.getItem('school_tracker_is_editor') === 'true';
 
@@ -648,7 +816,6 @@
         badge.style.borderColor = 'var(--border-dark)';
         btn.textContent = 'Режим редактирования';
 
-        // Если закрыли режим редактирования, находясь на закрытой вкладке — переводим на статистику
         const activeTab = document.querySelector('.tab-content.active');
         if (activeTab && (activeTab.id === 'current-lesson' || activeTab.id === 'settings')) {
           switchTab('analytics');
@@ -808,10 +975,12 @@
 
     let students = JSON.parse(localStorage.getItem('offense_students')) || DEFAULT_STUDENTS;
     let lessonsHistory = JSON.parse(localStorage.getItem('offense_history')) || [];
+    // Формат: { "Имя": { short: 0, long: 0 } }
     let currentLessonOffenses = {};
 
     let chartStudentsInstance = null;
     let chartSubjectsInstance = null;
+    let chartDaysInstance = null;
 
     function updateCloudStatus(text, isOnline = true) {
       const el = document.getElementById('cloud-status');
@@ -869,12 +1038,34 @@
         const fetched = [];
         snapshot.forEach(doc => {
           const data = doc.data();
-          if (data.offenses && data.offenses["Анастасия Роман"] !== undefined) {
-            data.offenses["Анастасия Руковицына"] = (data.offenses["Анастасия Руковицына"] || 0) + data.offenses["Анастасия Роман"];
-            delete data.offenses["Анастасия Роман"];
-            db.collection('lessons').doc(doc.id).update({ offenses: data.offenses });
+          let needsUpdate = false;
+          const updatedOffenses = { ...(data.offenses || {}) };
+
+          // 1. Замена старой фамилии, если осталась
+          if (updatedOffenses["Анастасия Роман"] !== undefined) {
+            const oldParsed = parseOffenseEntry(updatedOffenses["Анастасия Роман"]);
+            const curParsed = parseOffenseEntry(updatedOffenses["Анастасия Руковицына"]);
+            updatedOffenses["Анастасия Руковицына"] = {
+              short: curParsed.short + oldParsed.short,
+              long: curParsed.long + oldParsed.long
+            };
+            delete updatedOffenses["Анастасия Роман"];
+            needsUpdate = true;
           }
-          fetched.push({ docId: doc.id, ...data });
+
+          // 2. Автоматическая миграция старых числовых записей в формат { short: N, long: 0 }
+          for (const [k, v] of Object.entries(updatedOffenses)) {
+            if (typeof v === 'number') {
+              updatedOffenses[k] = { short: v, long: 0 };
+              needsUpdate = true;
+            }
+          }
+
+          if (needsUpdate) {
+            db.collection('lessons').doc(doc.id).update({ offenses: updatedOffenses });
+          }
+
+          fetched.push({ docId: doc.id, ...data, offenses: updatedOffenses });
         });
         lessonsHistory = fetched;
         localStorage.setItem('offense_history', JSON.stringify(lessonsHistory));
@@ -1001,6 +1192,7 @@
       });
     }
 
+    // --- Отрисовка учеников на текущем уроке (2 вида замечаний) ---
     function renderLiveStudents() {
       const container = document.getElementById('live-students-container');
       const searchQuery = (document.getElementById('student-search').value || '').toLowerCase();
@@ -1009,29 +1201,50 @@
       students
         .filter(name => name.toLowerCase().includes(searchQuery))
         .forEach(name => {
-          const count = currentLessonOffenses[name] || 0;
+          const entry = parseOffenseEntry(currentLessonOffenses[name]);
+          const total = entry.short + entry.long;
+
+          let stateClass = '';
+          if (entry.long > 0) stateClass = 'has-long';
+          else if (entry.short > 0) stateClass = 'has-short';
+
           const card = document.createElement('div');
-          card.className = `student-card ${count > 0 ? 'has-offense' : ''}`;
+          card.className = `student-card ${stateClass}`;
           card.innerHTML = `
-            <span class="name">${name}</span>
-            <div class="counter-controls">
-              <button class="counter-btn" onclick="changeOffenseCount('${name}', -1)">-</button>
-              <span class="count-display">${count}</span>
-              <button class="counter-btn" onclick="changeOffenseCount('${name}', 1)">+</button>
+            <div class="name">
+              <span>${name}</span>
+              ${total > 0 ? `<span class="total-badge">${total}</span>` : ''}
+            </div>
+            <div class="offense-row">
+              <span class="offense-label">Просто открыл</span>
+              <div class="counter-controls">
+                <button class="counter-btn" onclick="changeOffenseCount('${name}', 'short', -1)">-</button>
+                <span class="count-display">${entry.short}</span>
+                <button class="counter-btn" onclick="changeOffenseCount('${name}', 'short', 1)">+</button>
+              </div>
+            </div>
+            <div class="offense-row">
+              <span class="offense-label long-label">Сидел долго</span>
+              <div class="counter-controls">
+                <button class="counter-btn" onclick="changeOffenseCount('${name}', 'long', -1)">-</button>
+                <span class="count-display">${entry.long}</span>
+                <button class="counter-btn" onclick="changeOffenseCount('${name}', 'long', 1)">+</button>
+              </div>
             </div>
           `;
           container.appendChild(card);
         });
     }
 
-    function changeOffenseCount(name, delta) {
+    function changeOffenseCount(name, type, delta) {
       if (!isEditor) return;
-      let current = currentLessonOffenses[name] || 0;
-      current += delta;
-      if (current <= 0) {
+      const cur = parseOffenseEntry(currentLessonOffenses[name]);
+      cur[type] = Math.max(0, cur[type] + delta);
+
+      if (cur.short === 0 && cur.long === 0) {
         delete currentLessonOffenses[name];
       } else {
-        currentLessonOffenses[name] = current;
+        currentLessonOffenses[name] = cur;
       }
       renderLiveStudents();
     }
@@ -1097,9 +1310,11 @@
       subjectSelect.value = currentVal;
     }
 
+    // --- 4. Расширенная аналитика и статистика ---
     function renderAnalytics() {
       const period = document.getElementById('filter-period').value;
       const subject = document.getElementById('filter-subject').value;
+      const filterType = document.getElementById('filter-type').value;
       const sort = document.getElementById('filter-sort').value;
 
       const now = new Date();
@@ -1119,33 +1334,91 @@
         return true;
       });
 
+      const totalFilteredLessonsCount = filteredLessons.length;
       const stats = {};
       const subjectStats = {};
+      const dayOfWeekStats = {
+        1: { name: 'Пн', short: 0, long: 0 },
+        2: { name: 'Вт', short: 0, long: 0 },
+        3: { name: 'Ср', short: 0, long: 0 },
+        4: { name: 'Чт', short: 0, long: 0 },
+        5: { name: 'Пт', short: 0, long: 0 },
+        6: { name: 'Сб', short: 0, long: 0 }
+      };
+
+      let grandShort = 0;
+      let grandLong = 0;
 
       students.forEach(s => {
-        stats[s] = { name: s, totalCount: 0, lessonsWithOffense: 0 };
+        stats[s] = { name: s, shortCount: 0, longCount: 0, totalCount: 0, lessonsWithOffense: 0 };
       });
 
       filteredLessons.forEach(l => {
         const lSub = l.subject || 'Другое';
-        for (const [student, count] of Object.entries(l.offenses || {})) {
-          const val = Number(count) || 0;
-          if (stats[student]) {
-            stats[student].totalCount += val;
-            if (val > 0) stats[student].lessonsWithOffense += 1;
+        const dIdx = new Date(l.date).getDay();
+
+        for (const [student, rawVal] of Object.entries(l.offenses || {})) {
+          const parsed = parseOffenseEntry(rawVal);
+          const sCount = filterType === 'long' ? 0 : parsed.short;
+          const lCount = filterType === 'short' ? 0 : parsed.long;
+          const sum = sCount + lCount;
+
+          if (!stats[student]) {
+            stats[student] = { name: student, shortCount: 0, longCount: 0, totalCount: 0, lessonsWithOffense: 0 };
           }
-          if (val > 0) {
-            subjectStats[lSub] = (subjectStats[lSub] || 0) + val;
+
+          if (sum > 0) {
+            stats[student].shortCount += sCount;
+            stats[student].longCount += lCount;
+            stats[student].totalCount += sum;
+            stats[student].lessonsWithOffense += 1;
+
+            grandShort += sCount;
+            grandLong += lCount;
+
+            subjectStats[lSub] = (subjectStats[lSub] || 0) + sum;
+
+            if (dayOfWeekStats[dIdx]) {
+              dayOfWeekStats[dIdx].short += sCount;
+              dayOfWeekStats[dIdx].long += lCount;
+            }
           }
         }
       });
 
+      const grandTotal = grandShort + grandLong;
+
+      // Обновление карточек KPI
+      document.getElementById('kpi-total').textContent = grandTotal;
+      document.getElementById('kpi-lessons-count').textContent = `За ${totalFilteredLessonsCount} сохранённых ур.`;
+      document.getElementById('kpi-split').textContent = `${grandShort} / ${grandLong}`;
+      const shortPct = grandTotal > 0 ? Math.round((grandShort / grandTotal) * 100) : 0;
+      const longPct = grandTotal > 0 ? 100 - shortPct : 0;
+      document.getElementById('kpi-split-pct').textContent = `${shortPct}% кратко / ${longPct}% долго`;
+
+      const sortedSubjects = Object.entries(subjectStats).sort((a, b) => b[1] - a[1]);
+      if (sortedSubjects.length > 0) {
+        document.getElementById('kpi-top-subject').textContent = sortedSubjects[0][0];
+        document.getElementById('kpi-top-subject-count').textContent = `Замечаний: ${sortedSubjects[0][1]}`;
+      } else {
+        document.getElementById('kpi-top-subject').textContent = '—';
+        document.getElementById('kpi-top-subject-count').textContent = 'Нет нарушений';
+      }
+
+      const avgPerLesson = totalFilteredLessonsCount > 0 ? (grandTotal / totalFilteredLessonsCount).toFixed(1) : '0';
+      document.getElementById('kpi-avg').textContent = avgPerLesson;
+
+      // Сортировка массива учеников
       let statsArray = Object.values(stats);
 
-      if (sort === 'count') {
-        statsArray.sort((a, b) => b.totalCount - a.totalCount || a.name.localeCompare(b.name));
+      if (sort === 'total') {
+        statsArray.sort((a, b) => b.totalCount - a.totalCount || b.longCount - a.longCount || a.name.localeCompare(b.name));
+      } else if (sort === 'long') {
+        statsArray.sort((a, b) => b.longCount - a.longCount || b.totalCount - a.totalCount || a.name.localeCompare(b.name));
+      } else if (sort === 'short') {
+        statsArray.sort((a, b) => b.shortCount - a.shortCount || b.totalCount - a.totalCount || a.name.localeCompare(b.name));
       } else if (sort === 'lessons') {
-        statsArray.sort((a, b) => b.lessonsWithOffense - a.lessonsWithOffense || a.name.localeCompare(b.name));
+        statsArray.sort((a, b) => b.lessonsWithOffense - a.lessonsWithOffense || b.totalCount - a.totalCount || a.name.localeCompare(b.name));
       } else {
         statsArray.sort((a, b) => a.name.localeCompare(b.name));
       }
@@ -1155,31 +1428,44 @@
       tbody.innerHTML = '';
 
       statsArray.forEach((s, idx) => {
-        const percentage = Math.round((s.totalCount / maxCount) * 100);
+        const shortBarWidth = Math.round((s.shortCount / maxCount) * 100);
+        const longBarWidth = Math.round((s.longCount / maxCount) * 100);
+        const lessonFreqPct = totalFilteredLessonsCount > 0
+          ? Math.round((s.lessonsWithOffense / totalFilteredLessonsCount) * 100)
+          : 0;
+
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td style="color: var(--text-muted); font-size: 12px;">${idx + 1}</td>
           <td><strong>${s.name}</strong></td>
-          <td>${s.totalCount}</td>
-          <td>${s.lessonsWithOffense}</td>
+          <td>${s.shortCount}</td>
+          <td><strong>${s.longCount}</strong></td>
+          <td><strong>${s.totalCount}</strong></td>
+          <td>${s.lessonsWithOffense} из ${totalFilteredLessonsCount}</td>
+          <td>${lessonFreqPct}%</td>
           <td>
-            <div style="font-size: 11px; color: var(--text-muted);">${s.totalCount} замеч.</div>
+            <div style="font-size: 11px; color: var(--text-muted); display: flex; justify-content: space-between;">
+              <span>Кр: ${s.shortCount}</span>
+              <span>Дл: ${s.longCount}</span>
+            </div>
             <div class="progress-bar-container">
-              <div class="progress-bar" style="width: ${percentage}%"></div>
+              <div class="progress-bar-short" style="width: ${shortBarWidth}%" title="Просто открыл: ${s.shortCount}"></div>
+              <div class="progress-bar-long" style="width: ${longBarWidth}%" title="Сидел долго: ${s.longCount}"></div>
             </div>
           </td>
         `;
         tbody.appendChild(tr);
       });
 
-      renderCharts(statsArray, subjectStats);
+      renderCharts(statsArray, subjectStats, dayOfWeekStats);
     }
 
-    function renderCharts(statsArray, subjectStats) {
+    function renderCharts(statsArray, subjectStats, dayOfWeekStats) {
+      // 1. Топ-8 учеников (составная гистограмма: Кратко + Долго)
       const topStudents = [...statsArray]
         .filter(s => s.totalCount > 0)
         .sort((a, b) => b.totalCount - a.totalCount)
-        .slice(0, 7);
+        .slice(0, 8);
 
       const ctxTop = document.getElementById('chart-top-students').getContext('2d');
       if (chartStudentsInstance) chartStudentsInstance.destroy();
@@ -1188,39 +1474,49 @@
         type: 'bar',
         data: {
           labels: topStudents.map(s => s.name),
-          datasets: [{
-            data: topStudents.map(s => s.totalCount),
-            backgroundColor: '#111827',
-            borderRadius: 3,
-            borderSkipped: false
-          }]
+          datasets: [
+            {
+              label: 'Просто открыл',
+              data: topStudents.map(s => s.shortCount),
+              backgroundColor: '#9ca3af',
+              borderRadius: 2
+            },
+            {
+              label: 'Сидел долго',
+              data: topStudents.map(s => s.longCount),
+              backgroundColor: '#111827',
+              borderRadius: 2
+            }
+          ]
         },
         options: {
           indexAxis: 'y',
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
-            legend: { display: false },
-            tooltip: {
-              callbacks: {
-                label: ctx => `Замечаний: ${ctx.raw}`
-              }
+            legend: {
+              display: true,
+              position: 'bottom',
+              labels: { boxWidth: 10, font: { size: 11 }, color: '#374151' }
             }
           },
           scales: {
             x: {
+              stacked: true,
               beginAtZero: true,
               ticks: { stepSize: 1, color: '#6b7280', font: { size: 11 } },
               grid: { color: '#e5e7eb' }
             },
             y: {
-              ticks: { color: '#111827', font: { size: 12 } },
+              stacked: true,
+              ticks: { color: '#111827', font: { size: 11 } },
               grid: { display: false }
             }
           }
         }
       });
 
+      // 2. Диаграмма по предметам
       const subjectLabels = Object.keys(subjectStats);
       const subjectCounts = Object.values(subjectStats);
 
@@ -1228,7 +1524,7 @@
       if (chartSubjectsInstance) chartSubjectsInstance.destroy();
 
       const monoPalette = [
-        '#111827', '#374151', '#4b5563', '#6b7280', 
+        '#111827', '#374151', '#4b5563', '#6b7280',
         '#9ca3af', '#d1d5db', '#1f2937', '#e5e7eb'
       ];
 
@@ -1249,21 +1545,71 @@
           plugins: {
             legend: {
               position: 'right',
-              labels: { boxWidth: 12, font: { size: 11 }, color: '#374151' }
+              labels: { boxWidth: 10, font: { size: 11 }, color: '#374151' }
             }
           },
-          cutout: '65%'
+          cutout: '62%'
+        }
+      });
+
+      // 3. Диаграмма активности по дням недели
+      const daysArr = Object.values(dayOfWeekStats);
+      const ctxDays = document.getElementById('chart-by-days').getContext('2d');
+      if (chartDaysInstance) chartDaysInstance.destroy();
+
+      chartDaysInstance = new Chart(ctxDays, {
+        type: 'bar',
+        data: {
+          labels: daysArr.map(d => d.name),
+          datasets: [
+            {
+              label: 'Просто открыл',
+              data: daysArr.map(d => d.short),
+              backgroundColor: '#9ca3af',
+              borderRadius: 2
+            },
+            {
+              label: 'Сидел долго',
+              data: daysArr.map(d => d.long),
+              backgroundColor: '#111827',
+              borderRadius: 2
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: true,
+              position: 'bottom',
+              labels: { boxWidth: 10, font: { size: 11 }, color: '#374151' }
+            }
+          },
+          scales: {
+            x: {
+              stacked: true,
+              ticks: { color: '#111827', font: { size: 11 } },
+              grid: { display: false }
+            },
+            y: {
+              stacked: true,
+              beginAtZero: true,
+              ticks: { stepSize: 1, color: '#6b7280', font: { size: 11 } },
+              grid: { color: '#e5e7eb' }
+            }
+          }
         }
       });
     }
 
     function exportToCSV() {
-      let csv = 'Имя ученика;Всего замечаний;Уроков замечен\n';
+      let csv = 'Имя ученика;Просто открыл;Сидел долго;Всего замечаний;Уроков замечен;Доля уроков\n';
       const rows = document.querySelectorAll('#analytics-table-body tr');
       rows.forEach(r => {
         const cols = r.querySelectorAll('td');
-        if (cols.length >= 4) {
-          csv += `"${cols[1].innerText}";"${cols[2].innerText}";"${cols[3].innerText}"\n`;
+        if (cols.length >= 7) {
+          csv += `"${cols[1].innerText}";"${cols[2].innerText}";"${cols[3].innerText}";"${cols[4].innerText}";"${cols[5].innerText}";"${cols[6].innerText}"\n`;
         }
       });
 
@@ -1277,6 +1623,7 @@
       document.body.removeChild(link);
     }
 
+    // --- 5. История уроков ---
     function renderHistory() {
       const tbody = document.getElementById('history-table-body');
       tbody.innerHTML = '';
@@ -1288,8 +1635,15 @@
 
       lessonsHistory.forEach(l => {
         const offensesSummary = Object.entries(l.offenses || {})
-          .map(([name, count]) => `${name} (${count})`)
-          .join(', ') || '—';
+          .map(([name, rawVal]) => {
+            const parsed = parseOffenseEntry(rawVal);
+            const parts = [];
+            if (parsed.short > 0) parts.push(`откр: ${parsed.short}`);
+            if (parsed.long > 0) parts.push(`долго: ${parsed.long}`);
+            return parts.length > 0 ? `${name} (${parts.join(', ')})` : null;
+          })
+          .filter(Boolean)
+          .join('; ') || '—';
 
         const deleteCol = isEditor 
           ? `<button class="danger-link" onclick="deleteHistoryItem('${l.docId}')">Удалить</button>` 
@@ -1300,7 +1654,7 @@
           <td>${l.date}</td>
           <td>${l.number}</td>
           <td><strong>${l.subject}</strong></td>
-          <td style="max-width: 420px; font-size: 13px;">${offensesSummary}</td>
+          <td style="max-width: 440px; font-size: 13px;">${offensesSummary}</td>
           <td style="text-align: right;">${deleteCol}</td>
         `;
         tbody.appendChild(tr);
@@ -1318,6 +1672,7 @@
       }
     }
 
+    // --- 6. Настройки и список ---
     function renderSettingsStudents() {
       const container = document.getElementById('settings-students-list');
       container.innerHTML = '';

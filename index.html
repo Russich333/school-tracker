@@ -574,7 +574,7 @@
           <div>
             <span>Отметка учеников</span>
             <div style="font-size: 12px; font-weight: 400; color: var(--text-muted); margin-top: 2px;">
-              «Просто открыл» — краткое использование; «Сидел долго» — продолжительное время
+              «Кратковременное использовние» — краткое использование; «Долговременное использование» — продолжительное время
             </div>
           </div>
           <input type="text" id="student-search" placeholder="Поиск по фамилии..." oninput="renderLiveStudents()" style="width: 220px;">
@@ -597,8 +597,8 @@
         <div class="card-title">
           <span>Детальная аналитика нарушений</span>
           <div class="legend-inline">
-            <span><i class="dot" style="background:#9ca3af;"></i>Просто открыл</span>
-            <span><i class="dot" style="background:#111827;"></i>Сидел долго</span>
+            <span><i class="dot" style="background:#9ca3af;"></i>Кратковременное использовние</span>
+            <span><i class="dot" style="background:#111827;"></i>Долговременное использование</span>
           </div>
         </div>
 
@@ -622,8 +622,8 @@
             <label style="font-size: 12px; color: var(--text-muted);">Тип замечания:</label>
             <select id="filter-type" onchange="renderAnalytics()">
               <option value="all">Все типы (Кратко + Долго)</option>
-              <option value="short">Только «Просто открыл»</option>
-              <option value="long">Только «Сидел долго»</option>
+              <option value="short">Только «Кратковременное использовние»</option>
+              <option value="long">Только «Долговременное использование»</option>
             </select>
           </div>
           <div class="filter-item">
@@ -693,8 +693,8 @@
               <tr>
                 <th style="width: 36px;">№</th>
                 <th>Ученик</th>
-                <th>Просто открыл</th>
-                <th>Сидел долго</th>
+                <th>Кратковременное использовние</th>
+                <th>Долговременное использование</th>
                 <th>Всего раз</th>
                 <th>Уроков замечен</th>
                 <th>% уроков</th>
@@ -780,7 +780,7 @@
     const db = firebase.firestore();
 
     // --- Вспомогательная функция нормализации старых и новых записей ---
-    // Все старые числовые отметки автоматически считаются как "Просто открыл" (short)
+    // Все старые числовые отметки автоматически считаются как "Кратковременное использовние" (short)
     function parseOffenseEntry(val) {
       if (typeof val === 'number') {
         return { short: val, long: 0 };
@@ -1212,7 +1212,7 @@
               ${total > 0 ? `<span class="total-badge">${total}</span>` : ''}
             </div>
             <div class="offense-row">
-              <span class="offense-label">Просто открыл</span>
+              <span class="offense-label">Кратковременное использовние</span>
               <div class="counter-controls">
                 <button class="counter-btn" onclick="changeOffenseCount('${name}', 'short', -1)">-</button>
                 <span class="count-display">${entry.short}</span>
@@ -1220,7 +1220,7 @@
               </div>
             </div>
             <div class="offense-row">
-              <span class="offense-label long-label">Сидел долго</span>
+              <span class="offense-label long-label">Долговременное использование</span>
               <div class="counter-controls">
                 <button class="counter-btn" onclick="changeOffenseCount('${name}', 'long', -1)">-</button>
                 <span class="count-display">${entry.long}</span>
@@ -1445,8 +1445,8 @@
               <span>Дл: ${s.longCount}</span>
             </div>
             <div class="progress-bar-container">
-              <div class="progress-bar-short" style="width: ${shortBarWidth}%" title="Просто открыл: ${s.shortCount}"></div>
-              <div class="progress-bar-long" style="width: ${longBarWidth}%" title="Сидел долго: ${s.longCount}"></div>
+              <div class="progress-bar-short" style="width: ${shortBarWidth}%" title="Кратковременное использовние: ${s.shortCount}"></div>
+              <div class="progress-bar-long" style="width: ${longBarWidth}%" title="Долговременное использование: ${s.longCount}"></div>
             </div>
           </td>
         `;
@@ -1472,13 +1472,13 @@
           labels: topStudents.map(s => s.name),
           datasets: [
             {
-              label: 'Просто открыл',
+              label: 'Кратковременное использовние',
               data: topStudents.map(s => s.shortCount),
               backgroundColor: '#9ca3af',
               borderRadius: 2
             },
             {
-              label: 'Сидел долго',
+              label: 'Долговременное использование',
               data: topStudents.map(s => s.longCount),
               backgroundColor: '#111827',
               borderRadius: 2
@@ -1559,13 +1559,13 @@
           labels: daysArr.map(d => d.name),
           datasets: [
             {
-              label: 'Просто открыл',
+              label: 'Кратковременное использовние',
               data: daysArr.map(d => d.short),
               backgroundColor: '#9ca3af',
               borderRadius: 2
             },
             {
-              label: 'Сидел долго',
+              label: 'Долговременное использование',
               data: daysArr.map(d => d.long),
               backgroundColor: '#111827',
               borderRadius: 2
@@ -1600,7 +1600,7 @@
     }
 
     function exportToCSV() {
-      let csv = 'Имя ученика;Просто открыл;Сидел долго;Всего замечаний;Уроков замечен;Доля уроков\n';
+      let csv = 'Имя ученика;Кратковременное использовние;Долговременное использование;Всего замечаний;Уроков замечен;Доля уроков\n';
       const rows = document.querySelectorAll('#analytics-table-body tr');
       rows.forEach(r => {
         const cols = r.querySelectorAll('td');
